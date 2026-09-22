@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Swiftles jeje — choose your song game." />
+    <title>Swifles jeje :)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <div class="brand-mark" aria-hidden="true">♪</div>
+        <div>
+          <p class="eyebrow">A little music game</p>
+          <h1>Swifles jeje <span>:) </span></h1>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <section class="intro" aria-labelledby="choose-title">
+          <p class="section-kicker">Ready when you are</p>
+          <h2 id="choose-title">Choose a game</h2>
+          <p class="intro-copy">Put your song knowledge to the test and see how quickly you can guess the tune.</p>
+        </section>
+
+        <section class="game-grid" aria-label="Swiftle games">
+          <button class="game-card game-card--pink" type="button" data-game="Swiftle #1">
+            <span class="game-number">01</span>
+            <span class="game-icon" aria-hidden="true">♫</span>
+            <span class="game-name">Swiftle #1</span>
+            <span class="play-label">Play game <span aria-hidden="true">↗</span></span>
+          </button>
+          <button class="game-card game-card--yellow" type="button" data-game="Swiftle #2">
+            <span class="game-number">02</span>
+            <span class="game-icon" aria-hidden="true">♬</span>
+            <span class="game-name">Swiftle #2</span>
+            <span class="play-label">Play game <span aria-hidden="true">↗</span></span>
+          </button>
+          <button class="game-card game-card--blue" type="button" data-game="Swiftle #3">
+            <span class="game-number">03</span>
+            <span class="game-icon" aria-hidden="true">♪</span>
+            <span class="game-name">Swiftle #3</span>
+            <span class="play-label">Play game <span aria-hidden="true">↗</span></span>
+          </button>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p id="status-message" role="status" aria-live="polite">Your results will appear here</p>
+        <button class="copy-button" id="copy-results" type="button">
+          <span aria-hidden="true">▣</span> Copy results
+        </button>
+      </footer>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
