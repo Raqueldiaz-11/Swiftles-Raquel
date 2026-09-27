@@ -54,6 +54,26 @@ function normalizeLetter(value) {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 
+function getDailyStorageKey(name) {
+  return `swiftles-${name}-${new Date().toISOString().slice(0, 10)}`;
+}
+
+function loadStoredState(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function saveStoredState(key, state) {
+  try {
+    localStorage.setItem(key, JSON.stringify(state));
+  } catch {
+    // Continue normally if storage is unavailable.
+  }
+}
+
 function setupHangman() {
   const wordElement = document.getElementById('hangman-word');
   const form = document.getElementById('hangman-form');
@@ -68,10 +88,12 @@ function setupHangman() {
   const dailySong = pickFromDate(taylorSongs, new Date(), 8);
   const answer = dailySong.answer.replace(/\s*\([^)]*\)/g, '').trim();
   const normalizedAnswer = normalizeLetter(answer);
-  const guessedLetters = new Set();
+  const storageKey = getDailyStorageKey('hangman');
+  const savedState = loadStoredState(storageKey);
+  const guessedLetters = new Set(savedState?.answer === answer ? savedState.guessedLetters : []);
   const maxMistakes = 5;
-  let mistakes = 0;
-  let finished = false;
+  let mistakes = savedState?.answer === answer ? savedState.mistakes : 0;
+  let finished = savedState?.answer === answer && savedState.finished === true;
 
   function renderWord() {
     wordElement.textContent = [...answer].map((character, index) => {
@@ -81,7 +103,21 @@ function setupHangman() {
   }
 
   renderWord();
-  statusElement.textContent = `${maxMistakes} intentos`;
+  sharedResults.hangmanAttempts = guessedLetters.size;
+  statusElement.textContent = finished ? savedState.status : `${maxMistakes - mistakes} intentos`;
+  if (finished) {
+    sharedResults.hangman = savedState.result;
+    statusElement.classList.add(savedState.success ? 'success' : 'error');
+    if (savedState.success) {
+      successElement.classList.remove('hidden');
+    } else {
+      failElement.classList.remove('hidden');
+      correctAnswerElement.textContent = `La respuesta era: ${answer}`;
+      wordElement.textContent = answer;
+    }
+    input.disabled = true;
+    form.querySelector('button').disabled = true;
+  }
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -101,6 +137,13 @@ function setupHangman() {
     const isCorrect = normalizedAnswer.includes(letter);
     if (!isCorrect) mistakes += 1;
     renderWord();
+    saveStoredState(storageKey, {
+      answer,
+      guessedLetters: [...guessedLetters],
+      mistakes,
+      finished: false,
+      status: `${maxMistakes - mistakes} intentos`
+    });
 
     const allLettersGuessed = [...normalizedAnswer].every((character, index) => {
       return !/[a-z0-9]/i.test(character) || guessedLetters.has(character);
@@ -110,6 +153,7 @@ function setupHangman() {
       finished = true;
       statusElement.textContent = `Correcto: ${answer}`;
       sharedResults.hangman = `Guessed with ${mistakes} ${mistakes === 1 ? 'mistake' : 'mistakes'}`;
+      saveStoredState(storageKey, { answer, guessedLetters: [...guessedLetters], mistakes, finished: true, success: true, result: sharedResults.hangman, status: statusElement.textContent });
       statusElement.classList.add('success');
       successElement.classList.remove('hidden');
       failElement.classList.add('hidden');
@@ -119,6 +163,7 @@ function setupHangman() {
       finished = true;
       statusElement.textContent = `Fin: ${answer}`;
       sharedResults.hangman = 'FAKE FAN';
+      saveStoredState(storageKey, { answer, guessedLetters: [...guessedLetters], mistakes, finished: true, success: false, result: sharedResults.hangman, status: statusElement.textContent });
       statusElement.classList.add('error');
       successElement.classList.add('hidden');
       failElement.classList.remove('hidden');
@@ -163,15 +208,18 @@ async function setupSongGame() {
   const today = new Date();
   const dailySong = pickFromDate(taylorSongs, today, 7);
   const clueStorageKey = `swiftles-song-clue-${today.toISOString().slice(0, 10)}`;
+  const storageKey = getDailyStorageKey('song');
+  const savedState = loadStoredState(storageKey);
   const maxAttempts = 3;
-  let attempts = 0;
-  let solved = false;
+  let attempts = savedState?.answer === dailySong.answer ? savedState.attempts : 0;
+  let solved = savedState?.answer === dailySong.answer && savedState.solved === true;
   const answer = dailySong.answer;
-  let clueUsed = false;
+  let clueUsed = savedState?.answer === answer && savedState.clueUsed === true;
 
   clueElement.textContent = dailySong.clue;
   albumElement.textContent = dailySong.album;
-  statusElement.textContent = `${maxAttempts} intentos`;
+  sharedResults.songAttempts = attempts;
+  statusElement.textContent = `${maxAttempts - attempts} intentos`;
 
   try {
     const savedClue = JSON.parse(localStorage.getItem(clueStorageKey) || 'null');
@@ -192,9 +240,33 @@ async function setupSongGame() {
       answer,
       album: dailySong.album
     }));
+    saveStoredState(storageKey, { answer, attempts, solved, clueUsed });
   });
 
   populateSongOptions();
+
+  if (savedState?.answer === answer && savedState.clueUsed) {
+    albumElement.classList.remove('hidden');
+    hintButton.disabled = true;
+  }
+  if (solved) {
+    statusElement.textContent = savedState.status;
+    statusElement.classList.add(savedState.success ? 'success' : 'error');
+    if (savedState.success) {
+      successPanel.classList.remove('hidden');
+      guessPhoto.src = 'fotoacierto.jpeg';
+      guessPhoto.alt = answer;
+    } else {
+      failPanel.classList.remove('hidden');
+      correctAnswerElement.textContent = `La respuesta era: ${answer}`;
+    }
+    input.value = savedState.input || '';
+    input.disabled = true;
+    submitButton.disabled = true;
+  } else if (savedState?.answer === answer) {
+    statusElement.textContent = savedState.status;
+    input.value = savedState.input || '';
+  }
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -214,6 +286,7 @@ async function setupSongGame() {
     if (guessedCorrectly) {
       solved = true;
       sharedResults.song = clueUsed ? 'Guessed with clue' : 'Guessed';
+      saveStoredState(storageKey, { answer, attempts, solved: true, success: true, clueUsed, status: statusElement.textContent });
       statusElement.textContent = `Correcto: ${answer}`;
       statusElement.classList.add('success');
       successPanel.classList.remove('hidden');
@@ -238,6 +311,7 @@ async function setupSongGame() {
       successPanel.classList.add('hidden');
       failPanel.classList.remove('hidden');
       correctAnswerElement.textContent = `La respuesta era: ${answer}`;
+      saveStoredState(storageKey, { answer, attempts, solved: true, success: false, clueUsed, status: statusElement.textContent });
 
       input.disabled = true;
       submitButton.disabled = true;
@@ -245,6 +319,7 @@ async function setupSongGame() {
     }
 
     statusElement.textContent = `${maxAttempts - attempts} intentos restantes`;
+    saveStoredState(storageKey, { answer, attempts, solved: false, clueUsed, status: statusElement.textContent, input: input.value });
   });
 }
 
@@ -267,22 +342,26 @@ function setupDescriptionGame() {
   const dailySong = pickFromDate(taylorSongs, new Date(), 9);
   const answer = dailySong.answer;
   const clueStorageKey = `swiftles-description-clues-${new Date().toISOString().slice(0, 10)}`;
+  const storageKey = getDailyStorageKey('description');
+  const savedState = loadStoredState(storageKey);
   const maxAttempts = 5;
-  let attempts = 0;
-  let solved = false;
-  let clueUsed = false;
-  let clueStep = 0;
+  let attempts = savedState?.answer === answer ? savedState.attempts : 0;
+  let solved = savedState?.answer === answer && savedState.solved === true;
+  let clueUsed = savedState?.answer === answer && savedState.clueStep > 0;
+  let clueStep = savedState?.answer === answer ? savedState.clueStep : 0;
 
   clueElement.textContent = dailySong.description;
   albumElement.textContent = dailySong.album;
   initialsElement.textContent = dailySong.initials;
-  statusElement.textContent = `${maxAttempts} intentos`;
+  sharedResults.abelianAttempts = attempts;
+  statusElement.textContent = solved ? savedState.status : `${maxAttempts - attempts} intentos`;
 
   try {
     const savedClues = JSON.parse(localStorage.getItem(clueStorageKey) || 'null');
     if (savedClues?.description === dailySong.description && savedClues?.album === dailySong.album) {
       albumElement.classList.remove('hidden');
       clueStep = 1;
+      clueUsed = true;
       sharedResults.abelianClues = 1;
       hintButton.textContent = 'Clue 2';
     }
@@ -308,6 +387,7 @@ function setupDescriptionGame() {
         description: dailySong.description,
         album: dailySong.album
       }));
+      saveStoredState(storageKey, { answer, attempts, solved, clueUsed: true, clueStep: 1, status: statusElement.textContent });
       return;
     }
 
@@ -321,7 +401,26 @@ function setupDescriptionGame() {
       album: dailySong.album,
       initials: dailySong.initials
     }));
+    saveStoredState(storageKey, { answer, attempts, solved, clueUsed: true, clueStep: 2, status: statusElement.textContent });
   });
+
+  if (solved) {
+    statusElement.classList.add(savedState.success ? 'success' : 'error');
+    if (savedState.success) {
+      successPanel.classList.remove('hidden');
+      guessPhoto.src = 'fotoacierto.jpeg';
+      guessPhoto.alt = answer;
+    } else {
+      failPanel.classList.remove('hidden');
+      correctAnswerElement.textContent = `La respuesta era: ${answer}`;
+    }
+    input.value = savedState.input || '';
+    input.disabled = true;
+    submitButton.disabled = true;
+    sharedResults.abelian = savedState.result;
+  } else if (savedState?.answer === answer) {
+    input.value = savedState.input || '';
+  }
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -341,6 +440,7 @@ function setupDescriptionGame() {
       solved = true;
       sharedResults.abelian = clueUsed ? 'Guessed with clue' : 'Guessed';
       statusElement.textContent = `Correcto: ${answer}`;
+      saveStoredState(storageKey, { answer, attempts, solved: true, success: true, result: sharedResults.abelian, clueUsed, clueStep, status: statusElement.textContent });
       statusElement.classList.add('success');
       successPanel.classList.remove('hidden');
       failPanel.classList.add('hidden');
@@ -359,12 +459,14 @@ function setupDescriptionGame() {
       successPanel.classList.add('hidden');
       failPanel.classList.remove('hidden');
       correctAnswerElement.textContent = `La respuesta era: ${answer}`;
+      saveStoredState(storageKey, { answer, attempts, solved: true, success: false, result: sharedResults.abelian, clueUsed, clueStep, status: statusElement.textContent });
       input.disabled = true;
       submitButton.disabled = true;
       return;
     }
 
     statusElement.textContent = `${maxAttempts - attempts} intentos restantes`;
+    saveStoredState(storageKey, { answer, attempts, solved: false, clueUsed, clueStep, status: statusElement.textContent, input: input.value });
   });
 }
 
