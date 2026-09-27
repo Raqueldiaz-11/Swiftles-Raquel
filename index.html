@@ -1,61 +1,119 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Swiftles jeje — choose your song game." />
-    <title>Swifles jeje :)</title>
+    <title>Raque | Digital Studio</title>
+    <meta
+      name="description"
+      content="Portfolio y estudio digital de Raque, con diseño visual moderno y personal."
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="page-shell">
-      <header class="site-header">
-        <div class="brand-mark" aria-hidden="true">♪</div>
-        <div>
-          <p class="eyebrow">A little music game</p>
-          <h1>Swifles jeje <span>:) </span></h1>
+    <header class="site-header">
+      <div class="container nav">
+        <div class="brand">Daily Swiftles :)</div>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="hero">
+        <div class="container hero-inner">
+          <h1 id="today-date">Cargando fecha...</h1>
         </div>
-      </header>
+      </section>
 
-      <main class="main-content">
-        <section class="intro" aria-labelledby="choose-title">
-          <p class="section-kicker">Ready when you are</p>
-          <h2 id="choose-title">Choose a game</h2>
-          <p class="intro-copy">Put your song knowledge to the test and see how quickly you can guess the tune.</p>
-        </section>
+      <section class="cards-grid" aria-label="Tres divisiones cuadradas">
+        <article class="square-card card-one guess-card">
+          <div class="guess-heading">
+            <span class="tag">01</span>
+            <h2>Guess the song</h2>
+          </div>
+          <p class="guess-clue" id="guess-clue">Cargando pista...</p>
+          <p class="guess-album hidden" id="guess-album">Cargando álbum...</p>
+          <form id="guess-form" class="guess-form">
+            <input
+              id="guess-input"
+              type="text"
+              placeholder="Tu respuesta"
+              autocomplete="off"
+              list="song-options"
+            />
+            <button type="submit">Try</button>
+            <button id="hint-button" class="hint-button" type="button">Clue</button>
+          </form>
+          <datalist id="song-options"></datalist>
+          <p id="guess-status" class="guess-status">3 intentos</p>
+          <div id="guess-result" class="guess-result">
+            <div id="guess-success" class="guess-success hidden">
+              <img id="guess-photo" class="guess-photo" src="" alt="Foto del éxito" />
+            </div>
+            <div id="guess-fail" class="guess-fail hidden">
+              <strong>FAKE FAN</strong>
+              <span id="guess-correct-answer"></span>
+            </div>
+          </div>
+        </article>
 
-        <section class="game-grid" aria-label="Swiftle games">
-          <button class="game-card game-card--pink" type="button" data-game="Swiftle #1">
-            <span class="game-number">01</span>
-            <span class="game-icon" aria-hidden="true">♫</span>
-            <span class="game-name">Swiftle #1</span>
-            <span class="play-label">Play game <span aria-hidden="true">↗</span></span>
-          </button>
-          <button class="game-card game-card--yellow" type="button" data-game="Swiftle #2">
-            <span class="game-number">02</span>
-            <span class="game-icon" aria-hidden="true">♬</span>
-            <span class="game-name">Swiftle #2</span>
-            <span class="play-label">Play game <span aria-hidden="true">↗</span></span>
-          </button>
-          <button class="game-card game-card--blue" type="button" data-game="Swiftle #3">
-            <span class="game-number">03</span>
-            <span class="game-icon" aria-hidden="true">♪</span>
-            <span class="game-name">Swiftle #3</span>
-            <span class="play-label">Play game <span aria-hidden="true">↗</span></span>
-          </button>
-        </section>
-      </main>
+        <article class="square-card card-two">
+          <div class="game-heading">
+            <span class="tag">02</span>
+            <h2>Hangman</h2>
+          </div>
+          <p class="hangman-word" id="hangman-word">Cargando...</p>
+          <form id="hangman-form" class="hangman-form">
+            <input id="hangman-input" type="text" maxlength="1" placeholder="Letra" autocomplete="off" />
+            <button type="submit">Try</button>
+          </form>
+          <p id="hangman-status" class="hangman-status">5 intentos</p>
+          <div id="hangman-success" class="hangman-result hidden">
+            <img class="guess-photo" src="fotoacierto.jpeg" alt="Acierto" />
+          </div>
+          <div id="hangman-fail" class="hangman-result hangman-fail hidden">
+            <strong>FAKE FAN</strong>
+            <span id="hangman-correct-answer"></span>
+          </div>
+        </article>
 
-      <footer class="site-footer">
-        <p id="status-message" role="status" aria-live="polite">Your results will appear here</p>
-        <button class="copy-button" id="copy-results" type="button">
-          <span aria-hidden="true">▣</span> Copy results
-        </button>
-      </footer>
-    </div>
+        <article class="square-card card-three guess-card">
+          <div class="game-heading">
+            <span class="tag">03</span>
+            <h2 id="game-name-3">Abelian Description</h2>
+          </div>
+          <p class="guess-clue" id="description-clue">Cargando pista...</p>
+          <p class="guess-album hidden" id="description-album">Cargando álbum...</p>
+          <p class="guess-album hidden" id="description-initials">Cargando iniciales...</p>
+          <form id="description-form" class="guess-form">
+            <input id="description-input" type="text" placeholder="Tu respuesta" autocomplete="off" list="song-options" />
+            <button type="submit">Try</button>
+            <button id="description-hint" class="hint-button" type="button">Clue</button>
+          </form>
+          <p id="description-status" class="guess-status">5 intentos</p>
+          <div id="description-result" class="guess-result">
+            <div id="description-success" class="guess-success hidden">
+              <img id="description-photo" class="guess-photo" src="fotoacierto.jpeg" alt="Foto del éxito" />
+            </div>
+            <div id="description-fail" class="guess-fail hidden">
+              <strong>FAKE FAN</strong>
+              <span id="description-answer"></span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <div class="share-wrap">
+        <button id="share-button" class="share-btn" type="button">Share</button>
+      </div>
+    </main>
+
+    <script src="songs.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
